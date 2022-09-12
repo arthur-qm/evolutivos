@@ -9,7 +9,7 @@ Prey and Predator classes inherit individual class
 
 class Individual:
     # Only sets position
-    def __init__(self, acc_mean, acc_noise, spd_mean, spd_noise):
+    def __init__(self, acc_mean, acc_noise, spd_mean, spd_noise, neuron_range, neuron_angles):
         self.pos = Point(\
             utils.randint(config.LOWX, config.HIGHX),\
             utils.randint(config.LOWY, config.HIGHY))
@@ -22,22 +22,38 @@ class Individual:
         self.acc = utils.genrandbynoise(acc_mean, acc_noise)
 
         self.upd_ac_vector()
+
+        self.direction_enabled = config.DRAW_DIRECTION
         
+        self.draw_neurons = config.DRAW_NEURONS
+        self.neuron_range = neuron_range
+        self.neuron_angles = neuron_angles
+
         self.speed = Vector.randomunit(mag=utils.genrandbynoise(spd_mean, spd_noise))
     
     # Only draws circle and direction vector
-    def draw(self, screen, direction_enabled=True):
+    def draw(self, screen):
         pygame.draw.circle(screen, self.color, self.pos.L(), self.radius)
-        if direction_enabled:
+        
+        if self.direction_enabled:
             pygame.draw.line(screen, self.color, (self.pos + self.dir * self.radius).L(), 
                          (self.pos + self.dir * (self.radius*config.DIRECTION_VEC_SIZE)).L(), width=config.DIRECTION_WIDTH)
 
+        if self.draw_neurons:
+            for angle in self.neuron_angles:
+                pygame.draw.line(screen, config.NEURON_COLOR, self.pos.L(), (self.pos + self.dir.rotatedby(angle) * self.neuron_range).L(), width=config.NEURON_WIDTH)
+
     # Only erases circle
-    def erase(self, screen, erasing_color, direction_enabled=True):
+    def erase(self, screen, erasing_color):
         pygame.draw.circle(screen, erasing_color, self.pos.L(), self.radius)
-        if direction_enabled:
+
+        if self.direction_enabled:
             pygame.draw.line(screen, erasing_color, (self.pos + self.dir * self.radius).L(), 
                          (self.pos + self.dir * (self.radius*config.DIRECTION_VEC_SIZE)).L(), width=config.DIRECTION_WIDTH)
+        
+        if self.draw_neurons:
+            for angle in self.neuron_angles:
+                pygame.draw.line(screen, erasing_color, self.pos.L(), (self.pos + self.dir.rotatedby(angle) * self.neuron_range).L(), width=config.NEURON_WIDTH)
 
     def upd_ac_vector(self):
         self.accvec = Vector.from_direction_and_val(self.dir, self.acc)
@@ -82,10 +98,10 @@ class Individual:
             self.acc = -config.ACCELERATION_LIMIT
 
     def turn_left(self):
-        self.dir = self.dir.rotatedby(config.ANGLE_INCREASE)
+        self.dir = self.dir.rotatedby(-config.ANGLE_INCREASE)
 
     def turn_right(self):
-        self.dir = self.dir.rotatedby(-config.ANGLE_INCREASE)
+        self.dir = self.dir.rotatedby(config.ANGLE_INCREASE)
     
     def hits(self, other):
         return (self.pos - other.pos).mag < self.radius + other.radius
@@ -96,7 +112,8 @@ class Individual:
 class Prey(Individual):
     def __init__(self):
         super().__init__(config.PREY_ACCELERATION_MEAN, config.ACCELERATION_NOISE, 
-                         config.PREY_SPEED_MEAN, config.SPEED_NOISE)
+                         config.PREY_SPEED_MEAN, config.SPEED_NOISE, config.PREY_NEURON_RANGE,
+                         config.PREY_NEURON_ANGLES)
         
         self.radius = config.PREY_RADIUS
         self.color = config.PREY_COLOR
@@ -114,7 +131,8 @@ class Prey(Individual):
 class Predator(Individual):
     def __init__(self):
         super().__init__(config.PREDATOR_ACCELERATION_MEAN, config.ACCELERATION_NOISE, 
-                         config.PREDATOR_SPEED_MEAN, config.SPEED_NOISE)
+                         config.PREDATOR_SPEED_MEAN, config.SPEED_NOISE, config.PREDATOR_NEURON_RANGE,
+                         config.PREDATOR_NEURON_ANGLES)
         
         self.radius = config.PREDATOR_RADIUS
         self.color = config.PREDATOR_COLOR
