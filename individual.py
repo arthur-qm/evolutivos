@@ -44,7 +44,7 @@ class Individual:
                 pygame.draw.line(screen, config.NEURON_COLOR, self.pos.L(), (self.pos + self.dir.rotatedby(angle) * self.neuron_range).L(), width=config.NEURON_WIDTH)
 
     # Only erases circle
-    def erase(self, screen, erasing_color):
+    def erase(self, screen, erasing_color=config.BG_COLOR):
         pygame.draw.circle(screen, erasing_color, self.pos.L(), self.radius)
 
         if self.direction_enabled:
@@ -118,12 +118,6 @@ class Prey(Individual):
         self.radius = config.PREY_RADIUS
         self.color = config.PREY_COLOR
     
-    def draw(self, screen):
-        super().draw(screen)
-    
-    def erase(self, screen, erasing_color):
-        super().erase(screen, erasing_color)
-    
     def move(self):
         super().move(config.PREY_ACCELERATION_LIMIT, config.PREY_SPEED_LIMIT)
 
@@ -136,12 +130,6 @@ class Predator(Individual):
         
         self.radius = config.PREDATOR_RADIUS
         self.color = config.PREDATOR_COLOR
-    
-    def draw(self, screen):
-        super().draw(screen)
-    
-    def erase(self, screen, erasing_color):
-        super().erase(screen, erasing_color)
     
     def move(self):
         super().move(config.PREDATOR_ACCELERATION_LIMIT, config.PREDATOR_SPEED_LIMIT)

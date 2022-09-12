@@ -4,7 +4,7 @@ import config
 import utils
 import individual
 import sys
-
+import simulator
 
 if sys.argv[1] == 'test':
     pygame.init()
@@ -46,3 +46,16 @@ if sys.argv[1] == 'test':
         demo.erase(screen, config.BG_COLOR)
         demo.move()
         # print(demo.dir)
+elif sys.argv[1] == 'o':
+    pygame.init()
+
+    running = True
+    screen = pygame.display.set_mode(config.SIZE)
+    pygame.display.set_caption(config.TITLE)
+    screen.fill(config.BG_COLOR)
+
+    pygame.display.update()
+
+    game = simulator.Game(10, 10, True, screen, pygame.display.update, pygame.event.get)
+    game.start()
+
