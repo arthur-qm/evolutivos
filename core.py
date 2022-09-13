@@ -18,8 +18,10 @@ if sys.argv[1] == 'test':
 
     if sys.argv[2][0] == '1':
         demo = individual.Predator()
+        other = individual.Prey()
     else:
         demo = individual.Prey()
+        other = individual.Predator()
 
     while running:
         keys = pygame.key.get_pressed()
@@ -41,11 +43,18 @@ if sys.argv[1] == 'test':
                 running = False
             
         demo.draw(screen)
+        other.draw(screen)
         utils.sleep(config.TIME_RATE)
         pygame.display.update()
-        demo.erase(screen, config.BG_COLOR)
+        demo.erase(screen)
+        other.erase(screen)
         demo.move()
+        other.update_neurons([demo])
+        demo.update_neurons([other])
+        # other2.update_neurons([other, demo])
+        # pygame.draw.line(screen, (0, 0, 255), other.pos.L(), (other.pos + (demo.pos-other.pos)).L())
         # print(demo.dir)
+
 elif sys.argv[1] == 'o':
     pygame.init()
 
@@ -56,6 +65,6 @@ elif sys.argv[1] == 'o':
 
     pygame.display.update()
 
-    game = simulator.Game(10, 10, True, screen, pygame.display.update, pygame.event.get)
+    game = simulator.Game(1, 10, True, screen, pygame.display.update, pygame.event.get)
     game.start()
 

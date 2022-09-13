@@ -12,6 +12,7 @@ class Game:
         self.screen = screen
         self.upd = upd
         self.get_event = get_event
+        self.force_end = False
 
     def tick(self):
         if self.time_taken >= config.MAXTIME:
@@ -36,9 +37,17 @@ class Game:
         
             for ev in self.get_event():
                 if ev.type == QUIT:
-                    self.time_taken = config.MAXTIME
+                    self.force_end = True
                     return
 
+        for i in range(len(self.preys)):
+            self.preys[i].update_neurons(self.preds)
+            self.preys[i].decision()
+        
+        for i in range(len(self.preds)):
+            self.preds[i].update_neurons(self.preys)
+            self.preds[i].decision()
+        
         for i in range(len(self.preys)):
             self.preys[i].move()
         
@@ -46,8 +55,10 @@ class Game:
             self.preds[i].move()
         
         self.preys = list(filter(lambda prey: all(not prey.hits(pred) for pred in self.preds), self.preys))
+        if len(self.preys) == 0:
+            self.force_end = True
 
     def start(self):
-        while self.time_taken < config.MAXTIME:
+        while self.time_taken < config.MAXTIME and not self.force_end:
             self.tick()
 

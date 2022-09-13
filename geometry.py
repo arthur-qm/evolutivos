@@ -89,7 +89,7 @@ class Vector:
     # Multiplying by a number means scaling
     def __mul__(self, const):
         if type(const) == type(self):
-            return (self.x * const.x + self.y * const.y) * self.mag
+            return (self.x * const.x + self.y * const.y) * self.mag * const.mag
         else:
             if const < 0:
                 return Vector(-self.x, -self.y, self.mag*(-const))
@@ -101,6 +101,10 @@ class Vector:
         return Vector(self.x * other.x - self.y * other.y,
                       self.x * other.y + self.y * other.x,
                       self.mag * other.mag)
+    
+    def __xor__(self, other):
+        # only sign matters
+        return (self.x * other.y - self.y * other.x) * self.mag * other.mag 
     
     def __repr__(self):
         return f'Vector(({self.x}, {self.y}); {self.mag} --> ({self.x * self.mag}, {self.y * self.mag}))'
@@ -124,12 +128,15 @@ class Point:
     def __init__(self, x, y):
         self.x = x
         self.y = y
-    
+
+    def dist(self, other):
+        return sqrt((self.x-other.x)**2+(self.y-other.y)**2)
+
     def __add__(self, vec : Vector):
         return Point(self.x+vec.x * vec.mag, self.y + vec.y * vec.mag)
     
     def __sub__(self, other):
-        return Vector(self.y-other.y, self.x-other.x)
+        return Vector(self.x-other.x, self.y-other.y)
 
     def __iter__(self):
         yield self.x
@@ -142,26 +149,53 @@ class Point:
         return f'Point({self.x}, {self.y})'
 
 
-class Line:
-    def __init__(self, iniv, v : Vector):
-        self.inipoint = iniv
-        self.v = v.normalized()
+class LineSegment:
+    def __init__(self, inip : Point, v : Vector):
+        self.inip = inip
+        self.v = v
     
-
-class Circle:
-    def __init__(self, center, R):
-        self.center = center
-        self.R = R
-    
-    def line_intersection(self, line : Line):
-        point_to_center = self.center - line.inipoint
-        dist_to_line = point_to_center * line.v.rot90anti()
+    def dist(self, other):
         
-        if abs(dist_to_line) > self.R:
-            return []
+        # self : p to p+r
+        # other: q to q+ s
 
-        interdist = sqrt(self.R**2 - dist_to_line**2)
-        projection = self.center - line.v.rot90anti() * dist_to_line
+        pminusq = self.inip - other.inip # p - q
+    
+        r_cross_s = self.v ^ other.v
+        qminusp_cross_r = self.v ^ pminusq
+        # print('a')
+        if abs(r_cross_s) < 0.000001:
+            if abs(qminusp_cross_r) < 0.000001:
+                
+                # the two lines are collinear
+                
+                t0 = -(pminusq * self.v) / self.v.mag**2 # (q-p) dot r / |r|^2
+                t1 = t0 + (other.v * self.v) / self.v.mag**2 # t0 + s dot r / |r|^2
 
-        return [projection - line.v * interdist, projection + line.v * interdist]
+                # print(t0)
+                # print(t1)
+
+                # we check
+                if min(t0, t1) > 1 or max(t0, t1) < 0:
+                    # no intersection with [0, 1] --> collinear and disjoint segments
+                    return -1
+                else:
+                    # collinear and overlapping segments
+                    if min(t0, t1) > 0:
+                        return min(t0, t1) * self.v.mag
+                    else:
+                        return 0
+            else:
+                # the lines are parallel and not intersecting
+                return -1
+        else:
+            t = (other.v ^ pminusq) / r_cross_s # (q-p) cross s / (r cross s)
+            u = qminusp_cross_r / (r_cross_s)
+
+            if 0 <= t <= 1 and 0 <= u <= 1:
+                return t * self.v.mag
+            else:
+                return -1
+
+
 
