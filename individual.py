@@ -35,6 +35,8 @@ class Individual:
         self.wall_distances = [0 for _ in range(len(neuron_angles))]
 
         self.speed = Vector.randomunit(mag=utils.genrandbynoise(spd_mean, spd_noise))
+
+        self.fitness = 0
     
     # Only draws circle and direction vector
     def draw(self, screen):
@@ -47,7 +49,10 @@ class Individual:
         if self.draw_neurons:
             for i in range(len(self.neuron_angles)):
                 angle = self.neuron_angles[i]
-                if self.distances[i] == 0:
+
+                if config.WHICH_NEURONS == 'E' and self.distances[i] == 0:
+                    thecolor = config.NEURON_COLOR
+                elif config.WHICH_NEURONS == 'W' and self.wall_distances[i] == 0:
                     thecolor = config.NEURON_COLOR
                 else:
                     thecolor = (255, 0, 0)
@@ -88,14 +93,14 @@ class Individual:
         
         # Collision with the walls
         if self.pos.x < config.LOWX:
-            self.pos.x = config.LOWX
-        elif self.pos.x > config.HIGHX:
             self.pos.x = config.HIGHX
+        elif self.pos.x > config.HIGHX:
+            self.pos.x = config.LOWX
         
         if self.pos.y < config.LOWY:
-            self.pos.y = config.LOWY
-        elif self.pos.y > config.HIGHY:
             self.pos.y = config.HIGHY
+        elif self.pos.y > config.HIGHY:
+            self.pos.y = config.LOWY
     
     def accelerate(self):
         self.acc = self.acc + config.ACCELERATION_INCREASE
@@ -167,7 +172,7 @@ class Individual:
                 
                 self.wall_distances[i] = max(self.wall_distances[i], 1-dist/self.neuron_range)
         
-    def decision(self):
+    def decision(self, what):
         turning = utils.random()
         accel = utils.random()
 
