@@ -151,8 +151,8 @@ class Individual:
                         # We want: distance = radius sum --> 1
                         #          distance = maxdist --> 0
                         # (distance-radius sum) / (maxdist - radius_sum) gives the opposite so
-                        self.distances[i] = max(self.distances[i], 
-                        1-(distance_vector.mag-(self.radius+opposite.radius))/(self.max_dist_to_opposite - (self.radius+opposite.radius)))
+                        self.distances[i] = config.NEURON_MULTIPLIER (max(self.distances[i], 
+                        1-(distance_vector.mag-(self.radius+opposite.radius))/(self.max_dist_to_opposite - (self.radius+opposite.radius))))
                         # print(f'Increasing {i} because {self.dir} {self.neuron_angles[i]} {self.dir.rotatedby(self.neuron_angles[i])} {neuron_perp_vector} {distance_vector}')
                 #if self.distances[i]:
                 #    print(f'Detect enemy {self.distances[i]:.5f}')

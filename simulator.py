@@ -86,6 +86,8 @@ class PredatorEvolverSimulation(Game):
         self.initial_p = len(self.preys)
         for pred in self.preds:
             pred.energy = config.PREDATOR_INITIAL_ENERGY
+            pred.prox = 0
+        self.fitness = 0
         
     
     def tick(self):
@@ -115,7 +117,7 @@ class PredatorEvolverSimulation(Game):
                     return
 
         for i in range(len(self.preds)):
-            self.preds[i].update_neurons(self.preds)
+            self.preds[i].update_neurons(self.preys)
             PredatorEvolverSimulation.act_on_model(self.preds[i], self.model)
 
         
@@ -166,24 +168,30 @@ class PredatorEvolverSimulation(Game):
             if self.preds[i].energy < 0:
                 dead_preds.add(i)
         
-        self.preds = [self.preds[ind] for ind in range(len(self.preds)) if ind not in dead_preds]
-                
+        new_preds = []
+        for ind in range(len(self.preds)):
+            if ind not in dead_preds:
+                new_preds.append(self.preds[ind])
+        
+        self.preds = new_preds
+
         if len(self.preys) == 0 or len(self.preds) == 0 or self.time_taken >= config.MAXTIME:
             self.force_end = True
-            self.fitness = self.initial_p-len(self.preys)
+            self.fitness += self.initial_p-len(self.preys)
 
     
     @staticmethod
     def act_on_model(pred, model):
-        arr = np.expand_dims(np.array(pred.distances).reshape(-1), axis=0)
+        arr = np.expand_dims(np.array(pred.distances + pred.wall_distances ).reshape(-1), axis=0)
         # print(len(arr), 2*config.PREY_NEURONS)
         prediction = model.feed_foward(arr)
+        # print(prediction)
         # print(prediction)
         if prediction[0][0] < 0.4:
             pred.turn_left()
         elif prediction[0][0] > 0.6:
             pred.turn_right()
-        if prediction[1][0] < 0.4:
+        if prediction[1][0] < 0.2:
             pred.decelerate()
         elif prediction[1][0] > 0.6:
             pred.accelerate()
