@@ -16,6 +16,14 @@ for prey in range(30):
     prey_positions.append(geometry.Point(utils.randint(config.PREDATOR_SPAWN_BOX[1].x, config.HIGHX), utils.randint(config.PREDATOR_SPAWN_BOX[1].y, config.HIGHY)))
 
 
+creator.create("FitnessMax", base.Fitness, weights=(1.0,))
+creator.create("Individual", list, fitness=creator.FitnessMax)
+
+
+with open('predator.pkl', 'rb') as f:
+    melhor_ger = pickle.load(f)
+    # print(melhor_ger)    
+
 pygame.init()
 
 screen = pygame.display.set_mode(config.SIZE)
@@ -24,21 +32,10 @@ screen.fill(config.BG_COLOR)
 
 pygame.display.update()
 
+rn = nn.NN(config.PREDATOR_LAYERS_LIST)
+rn.set_weights(melhor_ger[0])
 
-creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-creator.create("Individual", list, fitness=creator.FitnessMax)
-
-
-with open('predator2.pkl', 'rb') as f:
-    melhor_ger = pickle.load(f)
-
-print(melhor_ger)
-
-model = nn.NN(config.PREDATOR_LAYERS_LIST)
-model.set_weights(melhor_ger)
-    
-
-game = simulator.PredatorEvolverSimulation(model, 1, 30, True, screen, pygame.display.update, pygame.event.get)
+game = simulator.PredatorEvolverSimulation(rn, None, False, 1, 30, True, screen, pygame.display.update, pygame.event.get)
 #game.preds[0].dir = geometry.Vector(1, 1).normalized()
 #game.preds[0].pos = geometry.Point(0, 0)
 #game.preds[0].speed = geometry.Vector(1, 1, mag=config.PREDATOR_SPEED_LIMIT/2)

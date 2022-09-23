@@ -9,7 +9,7 @@ Prey and Predator classes inherit individual class
 
 class Individual:
     # Only sets position
-    def __init__(self, acc_mean, acc_noise, spd_mean, spd_noise, neuron_range, neuron_angles, max_dist_to_opposite):
+    def __init__(self, acc_mean, acc_noise, spd_mean, spd_noise, neuron_range, neuron_angles, max_dist_to_opposite, crosses_walls):
         self.pos = Point(\
             utils.randint(config.LOWX, config.HIGHX),\
             utils.randint(config.LOWY, config.HIGHY))
@@ -37,6 +37,8 @@ class Individual:
         self.speed = Vector.randomunit(mag=utils.genrandbynoise(spd_mean, spd_noise))
 
         self.fitness = 0
+
+        self.wall_crosser = crosses_walls
     
     # Only draws circle and direction vector
     def draw(self, screen):
@@ -93,14 +95,14 @@ class Individual:
         
         # Collision with the walls
         if self.pos.x < config.LOWX:
-            self.pos.x = config.HIGHX
+            self.pos.x = config.HIGHX if self.wall_crosser else config.LOWX
         elif self.pos.x > config.HIGHX:
-            self.pos.x = config.LOWX
+            self.pos.x = config.LOWX if self.wall_crosser else config.HIGHX
         
         if self.pos.y < config.LOWY:
-            self.pos.y = config.HIGHY
+            self.pos.y = config.HIGHY if self.wall_crosser else config.LOWY
         elif self.pos.y > config.HIGHY:
-            self.pos.y = config.LOWY
+            self.pos.y = config.LOWY if self.wall_crosser else config.HIGHY
     
     def accelerate(self):
         self.acc = self.acc + config.ACCELERATION_INCREASE
@@ -151,10 +153,12 @@ class Individual:
                         # We want: distance = radius sum --> 1
                         #          distance = maxdist --> 0
                         # (distance-radius sum) / (maxdist - radius_sum) gives the opposite so
-                        self.distances[i] = config.NEURON_MULTIPLIER (max(self.distances[i], 
-                        1-(distance_vector.mag-(self.radius+opposite.radius))/(self.max_dist_to_opposite - (self.radius+opposite.radius))))
+                        self.distances[i] = max(self.distances[i], 
+                        1-(distance_vector.mag-(self.radius+opposite.radius))/(self.max_dist_to_opposite - (self.radius+opposite.radius)))
                         # print(f'Increasing {i} because {self.dir} {self.neuron_angles[i]} {self.dir.rotatedby(self.neuron_angles[i])} {neuron_perp_vector} {distance_vector}')
                 #if self.distances[i]:
+        for i in range(len(self.neuron_angles)):
+            self.distances[i] = config.NEURON_MULTIPLIER(self.distances[i])
                 #    print(f'Detect enemy {self.distances[i]:.5f}')
         # for the distance to the walls
         # 1 = right next to them
@@ -191,7 +195,7 @@ class Prey(Individual):
     def __init__(self):
         super().__init__(config.PREY_ACCELERATION_MEAN, config.ACCELERATION_NOISE, 
                          config.PREY_SPEED_MEAN, config.SPEED_NOISE, config.PREY_NEURON_RANGE,
-                         config.PREY_NEURON_ANGLES, config.MAX_DIST_TO_PRED)
+                         config.PREY_NEURON_ANGLES, config.MAX_DIST_TO_PRED, config.PREY_CAN_CROSS_WALLS)
         
         self.radius = config.PREY_RADIUS
         self.color = config.PREY_COLOR
@@ -204,7 +208,7 @@ class Predator(Individual):
     def __init__(self):
         super().__init__(config.PREDATOR_ACCELERATION_MEAN, config.ACCELERATION_NOISE, 
                          config.PREDATOR_SPEED_MEAN, config.SPEED_NOISE, config.PREDATOR_NEURON_RANGE,
-                         config.PREDATOR_NEURON_ANGLES, config.MAX_DIST_TO_PREY)
+                         config.PREDATOR_NEURON_ANGLES, config.MAX_DIST_TO_PREY, config.PRED_CAN_CROSS_WALLS)
         
         self.radius = config.PREDATOR_RADIUS
         self.color = config.PREDATOR_COLOR
