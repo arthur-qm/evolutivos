@@ -147,6 +147,9 @@ class Point:
     
     def __repr__(self):
         return f'Point({self.x}, {self.y})'
+    
+    def clone(self):
+        return Point(self.x, self.y)
 
 
 class LineSegment:

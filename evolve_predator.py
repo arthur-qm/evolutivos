@@ -13,7 +13,7 @@ import pygame
 
 utils.seed(0)
 
-config.MAXTIME = 4000
+# config.MAXTIME = 4000
 
 counter = 0
 
@@ -24,19 +24,15 @@ def evaluate(individual_brain):
     model = nn.NN(config.PREDATOR_LAYERS_LIST)
     model.set_weights(individual_brain)
     # model_preys = nn.NN(config.PREY_LAYERS_LIST)
-    media = 0
 
     #counter += 1
     #print(counter)
-    
-    sorteado = 30 #utils.randint(5, 50)
-        
-    for i in range(5):
-        # modelo_presa = nn.NN(config.PREY_LAYERS_LIST)
-
-        game = simulator.PredatorEvolverSimulation(model, None, False, 1, sorteado)
+    # modelo_presa = nn.NN(config.PREY_LAYERS_LIST)
+    media = 0
+    for i in range(3):
+        game = simulator.PredatorEvolverSimulation(model, None, False, False, 1, 7)
         game.start()
-        media += game.fitness/sorteado * 100
+        media += game.fitness
         
     #game.preds[0].dir = geometry.Vector(1, 1).normalized()
     #game.preds[0].pos = geometry.Point(0, 0)
@@ -46,7 +42,7 @@ def evaluate(individual_brain):
     
     
 
-    return (media/5,)
+    return (media/3,)
 
 
 model = nn.NN(config.PREDATOR_LAYERS_LIST)
@@ -61,7 +57,7 @@ toolbox.register('individual', tools.initRepeat, creator.Individual, toolbox.wei
 toolbox.register('population', tools.initRepeat, list, toolbox.individual)
 
 toolbox.register('mate', tools.cxTwoPoint)
-toolbox.register('mutate', tools.mutFlipBit, indpb=0.2)
+toolbox.register('mutate', tools.mutFlipBit, indpb=0.07)
 toolbox.register('select', tools.selTournament, tournsize=3)
 toolbox.register('evaluate', evaluate)
 pool = multiprocessing.Pool()
@@ -79,12 +75,12 @@ stats.register('Median', np.median)
 stats.register('75%', lambda arr: np.percentile(arr, 75))
 # stats.register('Counts', lambda arr: np.unique(arr, return_counts=True))
 
-pop = toolbox.population(n=200)
+pop = toolbox.population(n=100)
 hof = tools.HallOfFame(1)
 
-pop, log = algorithms.eaSimple(pop, toolbox, cxpb=0.5, mutpb=0.3, ngen=100, halloffame=hof, stats=stats)
+pop, log = algorithms.eaSimple(pop, toolbox, cxpb=0.5, mutpb=0.05, ngen=300, halloffame=hof, stats=stats)
 pops = sorted(pop, key=lambda ind: ind.fitness, reverse=True)
 print(log)
 
-with open("predator.pkl", "wb") as cp_file:
+with open("predator2.pkl", "wb") as cp_file:
     pickle.dump(pops, cp_file)
