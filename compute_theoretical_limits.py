@@ -1,6 +1,6 @@
 from config import *
 
-n_preys = 3
+n_preys = 1
 
 energy = PREDATOR_INITIAL_ENERGY
 digestion = 0

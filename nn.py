@@ -1,10 +1,11 @@
 import numpy as np
-from math import exp
+from math import exp, tanh
 
 def sigmoid(x):
     return 1/(1 + exp(-x))
 
 sigmoid_vec = np.vectorize(sigmoid)
+tanh_vec = np.vectorize(tanh)
 
 class NN:
     def __init__(self, layer_list):
@@ -20,23 +21,14 @@ class NN:
             self.weights.append(new_weights)
             self.biases.append((2*np.random.rand(layer_list[i+1], 1)-1)/10)
 
+
     def feed_foward(self, input_list):
         input_list = input_list.reshape((-1, 1))
-        # print('a')
-        # print(input_list)
+
         for i in range(len(self.weights)):
-            # print('start')
-            # print(self.weights[i])
-            # print('times')
-            # print(input_list)
             input_list = np.matmul(self.weights[i], input_list)
-            # print('equals')
-            # print(input_list)
-            input_list = sigmoid_vec(input_list + self.biases[i])
-            # print('sigmoided')
-            # print(input_list)
-        # print('final return')
-        # print(input_list)
+            input_list = tanh_vec(input_list + self.biases[i])
+
         return input_list
 
     def set_weights(self, weights):

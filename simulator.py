@@ -1,11 +1,11 @@
-from cgi import test
 import individual
 import config
 import utils
 from pygame.locals import QUIT, K_LEFT, K_RIGHT, K_UP, K_DOWN
 from pygame.key import get_pressed
+from pygame import font
 import numpy as np
-import matplotlib.pyplot as plt
+from math import atan2, pi
 
 
 class Game:
@@ -125,14 +125,12 @@ class PredatorEvolverSimulation(Game):
         self.fitness = 0
         self.model_preys = model_preys
         self.playable = playable
-        for pred in self.preds:
-            pred.prev_smell = -1
-            pred.curr_smell = -1
-        self.show_energy = show_energy
-        if show_energy:
-            self.preve = self.preds[0].energy
-            self.ax = plt.axes()
-        
+        #for pred in self.preds:
+        #    pred.prev_smell = -1
+        #    pred.curr_smell = -1
+        if self.broadcast:
+            self.my_font = font.SysFont('Comic Sans MS', 30)
+
     
     def tick(self):
         if self.time_taken >= config.MAXTIME:
@@ -145,27 +143,24 @@ class PredatorEvolverSimulation(Game):
             for i in range(len(self.preds)):
                 self.preds[i].draw(self.screen)
             
+            # Write stats of self.preds[0] (energy, hunger, speed, acceleration)
+            stats = f"""Energy: {self.preds[0].energy:.2f} 
+Digestion: {self.preds[0].digestion}
+Speed: {self.preds[0].speed.mag}
+Acceleration: {self.preds[0].acc}"""
+            text_surfaces = [self.my_font.render(stat, False, (0, 0, 0)) for stat in stats.split('\n')]
+            for i in range(len(text_surfaces)):
+                self.screen.blit(text_surfaces[i], (0, 15*i))
+
             self.upd()
             utils.sleep(config.TIME_RATE)
 
-            for i in range(len(self.preys)):
-                self.preys[i].erase(self.screen)
-            for i in range(len(self.preds)):
-                self.preds[i].erase(self.screen)
-        
+            self.screen.fill(config.BG_COLOR)
             for ev in self.get_event():
                 if ev.type == QUIT:
                     self.force_end = True
                     return
-
-        for i in range(len(self.preds)):
-            self.preds[i].prev_smell = self.preds[i].curr_smell
-            self.preds[i].curr_smell = -1
-            for j in range(len(self.preys)):
-                test_smell = 1-self.preys[j].pos.dist(self.preds[i].pos)/config.DIAGONAL
-                if self.preds[i].curr_smell == -1 or self.preds[i].curr_smell < test_smell:
-                    self.preds[i].curr_smell = test_smell
-
+            
 
         for i in range(len(self.preds)):
             self.preds[i].update_neurons(self.preys)
@@ -181,11 +176,11 @@ class PredatorEvolverSimulation(Game):
         elif self.model_preys != None:
             for i in range(len(self.preys)):
                 self.preys[i].update_neurons(self.preds)
-                PreyEvolverSimulation.act_on_model(self.preys[i], self.model_preys)
+                # PreyEvolverSimulation.act_on_model(self.preys[i], self.model_preys)
 
         for i in range(len(self.preds)):
             self.preds[i].move()
-            self.preds[i].energy -= config.PREDATOR_BODY_MAINTANCE_COST + self.preds[i].speed.mag**2 * config.PREDATOR_SPEED_COST
+            self.preds[i].energy -= config.PREDATOR_BODY_MAINTANCE_COST + self.preds[i].speed.mag**2 * self.preds[i].mass
             if self.preds[i].digestion > 0:
                 self.preds[i].energy += config.PREDATOR_ENERGY_RECOVERY
             self.preds[i].digestion -= config.PREDATOR_DIGESTION_CONVERSION
@@ -214,6 +209,7 @@ class PredatorEvolverSimulation(Game):
                 if self.preds[j].hits(self.preys[i]) and i not in dead_preys:
                     dead_preys.add(i)
                     self.preds[j].digestion += config.PREDATOR_DIGESTIVE_INCREASE
+                    self.preds[j].mass += config.MASS_INCREMENT
             if self.preds[j].digestion > config.PREDATOR_MAX_DIGESTION_CAPACITY:
                 self.preds[j].digestion = config.PREDATOR_MAX_DIGESTION_CAPACITY
 
@@ -221,15 +217,6 @@ class PredatorEvolverSimulation(Game):
 
         if len(self.preds) == 0 or self.time_taken >= config.MAXTIME:
             self.force_end = True
-        
-        if len(self.preds):
-            # self.ax.clear()
-            self.ax.plot([self.time_taken-1, self.time_taken], [self.preve, self.preds[0].energy], color='red')
-            # self.ax.plot([self.time_taken], [self.time_taken+1], 'rx')
-            self.preve = self.preds[0].energy
-            
-            # plt.pause(0.01)
-            plt.draw()
     
     @staticmethod
     def act_on_model(pred, model):
@@ -238,7 +225,7 @@ class PredatorEvolverSimulation(Game):
         # v = 1000*delta/(pred.prev_smell + 10**(-9))
         # print(v if abs(v) <= 2 else 2*v/abs(v))
         arr = np.array(pred.distances + pred.wall_distances +\
-            [(pred.speed * pred.dir) / config.PREDATOR_SPEED_LIMIT, (pred.speed * pred.dir.rot90anti()) / config.PREDATOR_SPEED_LIMIT,
+            [pred.speed.mag / config.PREDATOR_SPEED_LIMIT, atan2(pred.speed * pred.dir.rot90anti(), pred.speed * pred.dir) / pi,
             pred.acc/config.PREDATOR_ACCELERATION_LIMIT, pred.energy / config.PREDATOR_ENERGY_LIMIT,
             pred.digestion / config.PREDATOR_MAX_DIGESTION_CAPACITY])
 
@@ -247,100 +234,15 @@ class PredatorEvolverSimulation(Game):
         prediction = model.feed_foward(arr)
         # print(prediction)
         # print(prediction)
-        if prediction[0][0] < 0.4:
+        if prediction[0][0] < 0.3:
             pred.turn_left()
-        elif prediction[0][0] > 0.6:
+        elif prediction[0][0] > 0.7:
             pred.turn_right()
-        if prediction[1][0] < 0.4:
+        if prediction[1][0] < 0.3:
             pred.decelerate()
-        elif prediction[1][0] > 0.6:
+        elif prediction[1][0] > 0.7:
             pred.accelerate()
 
     @staticmethod
     def follow(pred, prey, fraction=0.95):
         pred.speed = (prey.pos - pred.pos).normalized() * (config.SPEED_LIMIT * fraction) 
-
-
-class PreyEvolverSimulation(Game):
-    def __init__(self, model, modelpred, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.modelpred = modelpred
-        self.model = model
-        for i in range(len(self.preds)):
-            self.preds[i].pos.x = utils.randint(config.PREY_SPAWN_BOX[0].x, config.PREY_SPAWN_BOX[1].x)
-            self.preds[i].pos.y = utils.randint(config.PREY_SPAWN_BOX[0].y, config.PREY_SPAWN_BOX[1].y)
-    
-    def tick(self):
-        if self.time_taken >= config.MAXTIME:
-            return
-
-        self.time_taken += 1
-        # print(self.time_taken)
-
-        if self.broadcast:
-            for i in range(len(self.preys)):
-                self.preys[i].draw(self.screen)
-            for i in range(len(self.preds)):
-                self.preds[i].draw(self.screen)
-            
-            self.upd()
-            utils.sleep(config.TIME_RATE)
-
-            for i in range(len(self.preys)):
-                self.preys[i].erase(self.screen)
-            for i in range(len(self.preds)):
-                self.preds[i].erase(self.screen)
-        
-            for ev in self.get_event():
-                if ev.type == QUIT:
-                    self.force_end = True
-                    return
-
-        for i in range(len(self.preys)):
-            self.preys[i].update_neurons(self.preds)
-            PreyEvolverSimulation.act_on_model(self.preys[i], self.model)
-        
-        for i in range(len(self.preds)):
-            self.preds[i].update_neurons(self.preys)
-            # PreyEvolverSimulation.follow(self.preds[i], self.preys[0])
-            PredatorEvolverSimulation.act_on_model(self.preds[i], self.modelpred)
-          
-        for i in range(len(self.preys)):
-            prey = self.preys[i]
-            prey.move()
-        
-        for i in range(len(self.preds)):
-            self.preds[i].move()
-        
-        dead_preys = set()
-        for i in range(len(self.preds)):
-            for j in range(len(self.preys)):
-                if self.preys[j].hits(self.preds[i]):
-                    dead_preys.add(j)
-        
-        
-        self.preys = [self.preys[ind] for ind in range(len(self.preys)) if ind not in dead_preys]
-                
-        if len(self.preys) == 0 or self.time_taken >= config.MAXTIME:
-            self.force_end = True
-            self.fitness = len(self.preys)
-    
-    @staticmethod
-    def act_on_model(prey, model):
-        arr = np.array(prey.distances + prey.wall_distances +\
-            [(prey.speed * prey.dir) / config.PREY_SPEED_LIMIT, (prey.speed * prey.dir.rot90anti()) / config.PREY_SPEED_LIMIT,
-            prey.acc/config.PREY_ACCELERATION_LIMIT])
-
-        arr = np.expand_dims(arr.reshape(-1), axis=0)
-        # print(len(arr), 2*config.PREY_NEURONS)
-        prediction = model.feed_foward(arr)
-        # print(prediction)
-        if prediction[0][0] < 0.4:
-            prey.turn_left()
-        elif prediction[0][0] > 0.6:
-            prey.turn_right()
-        if prediction[1][0] < 0.2:
-            prey.decelerate()
-        elif prediction[1][0] > 0.6:
-            prey.accelerate()
-
