@@ -1,6 +1,6 @@
 from config import *
 
-n_preys = 1
+n_preys = 7
 
 energy = PREDATOR_INITIAL_ENERGY
 digestion = 0
@@ -21,9 +21,8 @@ while curr_n_preys >= 1:
         energy = PREDATOR_ENERGY_LIMIT
     max_fitness_val += energy
     if digestion + PREDATOR_DIGESTIVE_INCREASE < PREDATOR_MAX_DIGESTION_CAPACITY:
-        if energy + (PREDATOR_ENERGY_RECOVERY - PREDATOR_BODY_MAINTANCE_COST) * (PREDATOR_MAX_DIGESTION_CAPACITY / PREDATOR_DIGESTION_CONVERSION) < PREDATOR_ENERGY_LIMIT:
-            curr_n_preys -= 1
-            digestion += PREDATOR_DIGESTIVE_INCREASE
-    print(energy, digestion)
+        curr_n_preys -= 1
+        digestion += PREDATOR_DIGESTIVE_INCREASE
+    # print(energy, digestion)
 
-print(max_fitness_val)
+print(max_fitness_val / 10**6)
