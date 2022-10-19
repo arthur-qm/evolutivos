@@ -23,6 +23,5 @@ while curr_n_preys >= 1:
     if digestion + PREDATOR_DIGESTIVE_INCREASE < PREDATOR_MAX_DIGESTION_CAPACITY:
         curr_n_preys -= 1
         digestion += PREDATOR_DIGESTIVE_INCREASE
-    # print(energy, digestion)
 
 print(max_fitness_val / 10**6)

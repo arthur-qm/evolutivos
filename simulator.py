@@ -38,7 +38,6 @@ class Game:
             return
 
         self.time_taken += 1
-        # print(self.time_taken)
 
         if self.broadcast:
             for i in range(len(self.preys)):
@@ -73,7 +72,6 @@ class Game:
         for i in range(len(self.preds)):
             self.preds[i].move()
             self.preds[i].energy -= config.PREDATOR_BODY_MAINTANCE_COST + self.preds[i].speed.mag**2 * config.PREDATOR_SPEED_COST
-            # print(self.preds[i].energy)
             if self.preds[i].digestion > 0:
                 self.preds[i].energy += config.PREDATOR_ENERGY_RECOVERY
             self.preds[i].digestion -= config.PREDATOR_DIGESTION_CONVERSION
@@ -125,9 +123,6 @@ class PredatorEvolverSimulation(Game):
         self.fitness = 0
         self.model_preys = model_preys
         self.playable = playable
-        #for pred in self.preds:
-        #    pred.prev_smell = -1
-        #    pred.curr_smell = -1
         if self.broadcast:
             self.my_font = font.SysFont('Comic Sans MS', 30)
 
@@ -147,7 +142,8 @@ class PredatorEvolverSimulation(Game):
             stats = f"""Energy: {self.preds[0].energy:.2f} 
 Digestion: {self.preds[0].digestion}
 Speed: {self.preds[0].speed.mag}
-Acceleration: {self.preds[0].acc}"""
+Acceleration: {self.preds[0].acc}
+Mass: {self.preds[0].mass}"""
             text_surfaces = [self.my_font.render(stat, False, (0, 0, 0)) for stat in stats.split('\n')]
             for i in range(len(text_surfaces)):
                 self.screen.blit(text_surfaces[i], (0, 15*i))
@@ -164,11 +160,7 @@ Acceleration: {self.preds[0].acc}"""
 
         for i in range(len(self.preds)):
             self.preds[i].update_neurons(self.preys)
-            PredatorEvolverSimulation.act_on_model(self.preds[i], self.model)
-            # print(self.preds[i].energy, self.preds[i].digestion)
-        #for i in range(len(self.preys)):
-        #    self.preys[i].update_neurons(self.preds)
-        #    PreyEvolverSimulation.act_on_model(self.preys[i], self.model_preys)
+            PredatorEvolverSimulation.update_acceleration(self.preds[i], self.model)
         
         if self.playable:
             for i in range(len(self.preys)):
@@ -176,7 +168,6 @@ Acceleration: {self.preds[0].acc}"""
         elif self.model_preys != None:
             for i in range(len(self.preys)):
                 self.preys[i].update_neurons(self.preds)
-                # PreyEvolverSimulation.act_on_model(self.preys[i], self.model_preys)
 
         for i in range(len(self.preds)):
             self.preds[i].move()
@@ -219,21 +210,16 @@ Acceleration: {self.preds[0].acc}"""
             self.force_end = True
     
     @staticmethod
-    def act_on_model(pred, model):
-        # delta = pred.curr_smell - pred.prev_smell
-        # print(delta/(pred.prev_smell + 10**(-9)))
-        # v = 1000*delta/(pred.prev_smell + 10**(-9))
-        # print(v if abs(v) <= 2 else 2*v/abs(v))
+    def update_acceleration(pred, model):
         arr = np.array(pred.distances + pred.wall_distances +\
             [pred.speed.mag / config.PREDATOR_SPEED_LIMIT, atan2(pred.speed * pred.dir.rot90anti(), pred.speed * pred.dir) / pi,
             pred.acc/config.PREDATOR_ACCELERATION_LIMIT, pred.energy / config.PREDATOR_ENERGY_LIMIT,
             pred.digestion / config.PREDATOR_MAX_DIGESTION_CAPACITY])
 
         arr = np.expand_dims(arr.reshape(-1), axis=0)
-        # print(len(arr), 2*config.PREY_NEURONS)
+
         prediction = model.feed_foward(arr)
-        # print(prediction)
-        # print(prediction)
+
         if prediction[0][0] < 0.3:
             pred.turn_left()
         elif prediction[0][0] > 0.7:

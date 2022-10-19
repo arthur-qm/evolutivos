@@ -12,12 +12,9 @@ alfaces em um ritmo/"estratégia" que maximiza sua fitness.
 
 """
 
-
-from json import tool
 import numpy as np
 from deap import base, creator, tools, algorithms
 import geometry
-import individual
 import config
 import simulator
 import utils
@@ -76,7 +73,6 @@ def evaluate(individual_brain):
     media = 0
 
     for j in range(len(tested_angles)):
-        # print(j)
         game = simulator.PredatorEvolverSimulation(model, None, False, False, 1, N_PREYS)
         for i in range(N_PREYS):
             game.preys[i].pos.x = positions[j][i].x
@@ -87,10 +83,6 @@ def evaluate(individual_brain):
         game.preds[0].upd_ac_vector()
         game.start()
         media += game.fitness
-    # game.preds[0].dir = initial_angle
-    
-    # game.start()
-    #media += game.fitness # após rodar a simulação, terei um valor pronto de fitness
 
     return (media/len(tested_angles),)
 
