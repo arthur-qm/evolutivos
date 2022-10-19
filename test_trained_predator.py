@@ -68,18 +68,21 @@ if look_for_true_best:
         print(f'Testando {len(ultima_ger)-i}/{len(ultima_ger)}')
         rn.set_weights(ultima_ger[i])
         score = 0
-        for j in range(5):
+        for j in range(SITUATIONS):
             game = simulator.PredatorEvolverSimulation(rn, None, False, False, 1, 7, False, None, None, None)
             for i in range(N_PREYS):
                 game.preys[i].pos.x = positions[i].x
                 game.preys[i].pos.y = positions[i].y
-            game.preds[0].pos.x = pred_pos.x
-            game.preds[0].pos.y = pred_pos.y
+            game.preds[0].pos.x = pred_poses[j].x
+            game.preds[0].pos.y = pred_poses[j].y
+            game.preds[0].dir = tested_angles[j]
+            game.preds[0].upd_ac_vector()
+
             game.start()
             score += game.fitness
             print(f'{game.fitness/10**6} milhões nessa simulação')
             game.fitness = 0
-        score /= 7
+        score /= SITUATIONS
         print(f'Consegui um score {score}')
         if score > true_best_mean_score:
             true_best = i
