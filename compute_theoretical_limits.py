@@ -10,7 +10,7 @@ curr_n_preys = n_preys
 # Compute the maximum value for fitness
 
 
-while curr_n_preys >= 1:
+while energy >= 0:
     energy -= PREDATOR_BODY_MAINTANCE_COST
     if digestion > 0:
         energy += PREDATOR_ENERGY_RECOVERY
@@ -20,8 +20,10 @@ while curr_n_preys >= 1:
     if energy > PREDATOR_ENERGY_LIMIT:
         energy = PREDATOR_ENERGY_LIMIT
     max_fitness_val += energy
-    if digestion + PREDATOR_DIGESTIVE_INCREASE < PREDATOR_MAX_DIGESTION_CAPACITY:
+    if curr_n_preys >= 1 and digestion == 0 and energy + 320 * (PREDATOR_ENERGY_RECOVERY - PREDATOR_BODY_MAINTANCE_COST) <= PREDATOR_ENERGY_LIMIT:
         curr_n_preys -= 1
         digestion += PREDATOR_DIGESTIVE_INCREASE
+    if digestion > PREDATOR_MAX_DIGESTION_CAPACITY:
+        digestion = PREDATOR_MAX_DIGESTION_CAPACITY
 
 print(max_fitness_val / 10**6)

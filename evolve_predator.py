@@ -28,7 +28,7 @@ utils.seed(0)
 # Número de presas utilizadas na simulação de cálculo de fitness
 N_PREYS = 7
 
-SITUATIONS = 3
+SITUATIONS = 30
 
 pred_poses = [geometry.Point(utils.randint(config.LOWX, config.HIGHX), 
                             utils.randint(config.LOWY, config.HIGHY)) for _ in range(SITUATIONS)]
@@ -44,7 +44,7 @@ print(pred_poses)
 print(positions)
 
 # Número de gerações
-N_GEN = 200
+N_GEN = 50
 
 """
 Dado uma lista de floats, que é que o deap acha que é o indivíduo, utilizamos a função evaluate
@@ -136,7 +136,7 @@ toolbox.register('population', tools.initRepeat, list, toolbox.individual)
 # duas floats "filhas" de outras duas listas de floats. Ele funciona percorrendo as listas
 # e pra cada posição, troca os elementos correspondentes a mesma posição de cada uma das listas
 # originais com probabilidade indpb, especificada abaixo
-toolbox.register('mate', tools.cxUniform, indpb=0.07)
+toolbox.register('mate', tools.cxUniform, indpb=0.7)
 
 # A função toolbox.mutate é responsável pela mutação de indivíduos. Foi utilizado
 # o algoritmo de mutação para floats "tools.mutGaussian". Será definido mais abaixo
@@ -144,13 +144,13 @@ toolbox.register('mate', tools.cxUniform, indpb=0.07)
 # Para cada atributo, existe uma probabilidade indpb de acontecer uma mutação nele
 # Quando essa mutação ocorre, o valor se transforma conforme cuja distribuição de valores é centrada em 'mu'
 # e possui desvio padrão 'sigma'
-toolbox.register('mutate', tools.mutGaussian, indpb=0.3, mu=0, sigma=0.7) # ver se funciona pra real
+toolbox.register('mutate', tools.mutGaussian, indpb=0.7, mu=0, sigma=0.7) # ver se funciona pra real
 
 # A função toolbox.select é responsável por selecionar os indivíduos para a próxima geração
 # Em particular, tools.selTournament funciona assim:
 # Ela seleciona vários grupos de 'tournsize' indivíduos aleatórios da geração anterior e
 # para cada grupinho, seleciona o com maior fitness
-toolbox.register('select', tools.selTournament, tournsize=5)
+toolbox.register('select', tools.selTournament, tournsize=4)
 
 # A função toolbox.evaluate é definida como a função evaluate, escrita na parte de cima
 # desse mesmo arquivo que você está lendo. Ela retorna a fitness e já foi explicada em sua 
@@ -180,19 +180,19 @@ history = tools.History()
 toolbox.decorate('mate', history.decorator)
 toolbox.decorate('mutate', history.decorator)
 
-# Cria uma população inicial de 100 indivíduos
-pop = toolbox.population(n=100)
+# Cria uma população inicial de 20 indivíduos
+pop = toolbox.population(n=20)
 history.update(pop)
 
 # Cria um hall of fame
-hof = tools.HallOfFame(10)
+hof = tools.HallOfFame(1)
 
 # algorithms.eaSimple roda o algoritmo genético mais simples
 # Retorna a população da última geração e as estatísticas de toda a evolução
 # cxpb = probabilidade de cruzar 2 indivíduos
 # mutpb = probabilidade de um indivíduo mutar
 
-pop, log = algorithms.eaSimple(pop, toolbox, cxpb=0.2, mutpb=0.4, ngen=N_GEN, stats=stats, halloffame=hof)
+pop, log = algorithms.eaSimple(pop, toolbox, cxpb=0.9, mutpb=0.03, ngen=N_GEN, stats=stats, halloffame=hof)
 
 # Ordena a população da última geração pela fitness
 pops = sorted(pop, key=lambda ind: ind.fitness, reverse=True)
@@ -202,11 +202,19 @@ print(log)
 
 # Guarda a última geração num arquivo
 # Assim, é possível ver como ela desempenha
-with open("last_generation.pkl", "wb") as cp_file:
+
+from datetime import datetime as dt
+
+with open(f"last_generation{dt.today()}.pkl", "wb") as cp_file:
     pickle.dump(pops, cp_file)
 
-with open('history.pkl', 'wb') as cp_file:
+with open(f'history{dt.today()}.pkl', 'wb') as cp_file:
     pickle.dump(history, cp_file)
 
-with open('hof.pkl', 'wb') as cp_file:
+with open(f'hof{dt.today()}.pkl', 'wb') as cp_file:
     pickle.dump(hof, cp_file)
+
+
+
+with open(f'log{dt.today()}.pkl', 'wb') as cp_file:
+    pickle.dump(log, cp_file)

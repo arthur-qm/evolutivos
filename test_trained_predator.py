@@ -22,7 +22,7 @@ utils.seed(0)
 # Número de presas utilizadas na simulação de cálculo de fitness
 N_PREYS = 7
 
-SITUATIONS = 3
+SITUATIONS = 30
 
 pred_poses = [geometry.Point(utils.randint(config.LOWX, config.HIGHX), 
                             utils.randint(config.LOWY, config.HIGHY)) for _ in range(SITUATIONS)]

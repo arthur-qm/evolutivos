@@ -228,7 +228,3 @@ Mass: {self.preds[0].mass}"""
             pred.decelerate()
         elif prediction[1][0] > 0.7:
             pred.accelerate()
-
-    @staticmethod
-    def follow(pred, prey, fraction=0.95):
-        pred.speed = (prey.pos - pred.pos).normalized() * (config.SPEED_LIMIT * fraction) 
