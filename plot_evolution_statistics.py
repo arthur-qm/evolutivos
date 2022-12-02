@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 TL = get_theoretical_limit()
 
-logfile_name = 'log2022-12-02 031356.236455.pkl'
+logfile_name = 'log2022-12-02 143905.036739.pkl'
 
 with open(logfile_name, 'rb') as logfile:
     logs = pkl.load(logfile)

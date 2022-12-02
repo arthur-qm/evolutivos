@@ -144,7 +144,7 @@ toolbox.register('mate', tools.cxUniform, indpb=0.7)
 # Para cada atributo, existe uma probabilidade indpb de acontecer uma mutação nele
 # Quando essa mutação ocorre, o valor se transforma conforme cuja distribuição de valores é centrada em 'mu'
 # e possui desvio padrão 'sigma'
-toolbox.register('mutate', tools.mutGaussian, indpb=0.7, mu=0, sigma=1) # ver se funciona pra real
+toolbox.register('mutate', tools.mutGaussian, indpb=0.7, mu=0, sigma=0.7) # ver se funciona pra real
 
 # A função toolbox.select é responsável por selecionar os indivíduos para a próxima geração
 # Em particular, tools.selTournament funciona assim:
@@ -192,7 +192,7 @@ hof = tools.HallOfFame(1)
 # cxpb = probabilidade de cruzar 2 indivíduos
 # mutpb = probabilidade de um indivíduo mutar
 
-pop, log = algorithms.eaSimple(pop, toolbox, cxpb=0.9, mutpb=0.1, ngen=N_GEN, stats=stats, halloffame=hof)
+pop, log = algorithms.eaSimple(pop, toolbox, cxpb=0.9, mutpb=0.2, ngen=N_GEN, stats=stats, halloffame=hof)
 
 # Ordena a população da última geração pela fitness
 pops = sorted(pop, key=lambda ind: ind.fitness, reverse=True)
