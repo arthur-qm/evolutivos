@@ -147,6 +147,9 @@ class Point:
     
     def __repr__(self):
         return f'Point({self.x}, {self.y})'
+    
+    def clone(self):
+        return Point(self.x, self.y)
 
 
 class LineSegment:
@@ -154,6 +157,15 @@ class LineSegment:
         self.inip = inip
         self.v = v
     
+
+    """
+    
+    Finds the distance from the 'inip' endpoint of the 'self' segment
+    along itself to the 'other' segment
+
+    This is used to find the distance along the vision ray to the walls
+    """
+
     def dist(self, other):
         
         # self : p to p+r
@@ -163,7 +175,7 @@ class LineSegment:
     
         r_cross_s = self.v ^ other.v
         qminusp_cross_r = self.v ^ pminusq
-        # print('a')
+
         if abs(r_cross_s) < 0.000001:
             if abs(qminusp_cross_r) < 0.000001:
                 
@@ -171,9 +183,6 @@ class LineSegment:
                 
                 t0 = -(pminusq * self.v) / self.v.mag**2 # (q-p) dot r / |r|^2
                 t1 = t0 + (other.v * self.v) / self.v.mag**2 # t0 + s dot r / |r|^2
-
-                # print(t0)
-                # print(t1)
 
                 # we check
                 if min(t0, t1) > 1 or max(t0, t1) < 0:
