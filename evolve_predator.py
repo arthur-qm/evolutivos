@@ -192,7 +192,7 @@ hof = tools.HallOfFame(1)
 # cxpb = probabilidade de cruzar 2 indivíduos
 # mutpb = probabilidade de um indivíduo mutar
 
-pop, log = algorithms.eaSimple(pop, toolbox, cxpb=0.9, mutpb=0.2, ngen=N_GEN, stats=stats, halloffame=hof)
+pop, log = algorithms.eaSimple(pop, toolbox, cxpb=0.9, mutpb=0.1, ngen=N_GEN, stats=stats, halloffame=hof)
 
 # Ordena a população da última geração pela fitness
 pops = sorted(pop, key=lambda ind: ind.fitness, reverse=True)

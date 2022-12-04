@@ -42,7 +42,7 @@ print(positions)
 creator.create("FitnessMax", base.Fitness, weights=(1.0,))
 creator.create("Individual", list, fitness=creator.FitnessMax)
 
-with open('hof2022-11-30 172523.513235.pkl', 'rb') as f:
+with open('hof2022-12-03 212214.848781.pkl', 'rb') as f:
     ultima_ger = pickle.load(f)
 
 # Nós definimos a fitness "final" de um indivíduo como a média da fitness "por simulação"

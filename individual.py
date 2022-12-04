@@ -10,6 +10,7 @@ import config
 import utils
 import pygame.draw
 from geometry import LineSegment, Vector, Point
+from math import sin, asin, pi
 
 """
 Prey and Predator classes inherit individual class
@@ -57,7 +58,7 @@ class Individual:
         # the 'distances' list stores the result of a calculation involving
         # the distance from the individual to other individual along a given
         # vision ray
-        self.distances = [0 for _ in range(len(neuron_angles))]
+        self.vision_variables = [-1 for _ in range(3)]
 
         # same as distances but considers distances to walls rather than other individuals
         self.wall_distances = [0 for _ in range(3)]
@@ -85,18 +86,20 @@ class Individual:
         if config.DRAW_DIRECTION:
             pygame.draw.line(screen, self.color, (self.pos + self.dir * self.radius).L(), 
                          (self.pos + self.dir * (self.radius*config.DIRECTION_VEC_SIZE)).L(), width=config.DIRECTION_WIDTH)
-
-        if config.DRAW_NEURONS:
-            for i in range(len(self.neuron_angles)):
-                angle = self.neuron_angles[i]
-
-                if config.WHICH_NEURONS == 'E' and self.distances[i] == 0:
-                    thecolor = config.NEURON_COLOR
-                elif config.WHICH_NEURONS == 'W' and self.wall_distances[i] == 0:
-                    thecolor = config.NEURON_COLOR
-                else:
-                    thecolor = (255, 0, 0)
-                pygame.draw.line(screen, thecolor, self.pos.L(), (self.pos + self.dir.rotatedby(angle) * self.neuron_range).L(), width=config.NEURON_WIDTH)
+        
+        if config.DRAW_NEURONS and self.vision_variables[0] != -1:
+            if self.vision_variables[0] == 1:
+                pygame.draw.line(screen, self.color, self.pos.L(),
+                                 (self.pos + self.dir.rotatedby(self.vision_variables[2]) * config.PREDATOR_NEURON_RANGE).L(),
+                                 width=config.NEURON_WIDTH)
+        
+            pygame.draw.line(screen, self.color, (self.pos + self.dir * self.radius).L(),
+                            (self.pos + self.dir.rotatedby(config.PREDATOR_ANGLE_VISION * 1/2) * config.PREDATOR_NEURON_RANGE).L(),
+                            width=config.NEURON_WIDTH)
+            
+            pygame.draw.line(screen, self.color, (self.pos + self.dir * self.radius).L(),
+                            (self.pos + self.dir.rotatedby(-config.PREDATOR_ANGLE_VISION * 1/2) * config.PREDATOR_NEURON_RANGE).L(),
+                            width=config.NEURON_WIDTH)
 
     # Only erases circle
     def erase(self, screen, erasing_color=config.BG_COLOR):
@@ -106,10 +109,21 @@ class Individual:
             pygame.draw.line(screen, erasing_color, (self.pos + self.dir * self.radius).L(), 
                          (self.pos + self.dir * (self.radius*config.DIRECTION_VEC_SIZE)).L(), width=config.DIRECTION_WIDTH)
         
-        if config.DRAW_NEURONS:
-            for angle in self.neuron_angles:
-                pygame.draw.line(screen, erasing_color, self.pos.L(), (self.pos + self.dir.rotatedby(angle) * self.neuron_range).L(), width=config.NEURON_WIDTH)
-
+        if config.DRAW_NEURONS and self.vision_variables[0] != -1:
+            if self.vision_variables[0] == 1:
+                pygame.draw.line(screen, erasing_color, (self.pos).L(),
+                                 (self.pos + self.dir.rotatedby(self.vision_variables[2]) * config.PREDATOR_NEURON_RANGE).L(),
+                                 width=config.NEURON_WIDTH)
+                
+        
+            pygame.draw.line(screen, erasing_color, (self.pos + self.dir * self.radius).L(),
+                            (self.pos + self.dir.rotatedby(config.PREDATOR_ANGLE_VISION * pi/2) * config.PREDATOR_NEURON_RANGE).L(),
+                            width=config.NEURON_WIDTH)
+            
+            pygame.draw.line(screen, erasing_color, (self.pos + self.dir * self.radius).L(),
+                            (self.pos + self.dir.rotatedby(-config.PREDATOR_ANGLE_VISION*pi/2) * config.PREDATOR_NEURON_RANGE).L(),
+                            width=config.NEURON_WIDTH)
+        
     def upd_ac_vector(self):
         self.accvec = Vector.from_direction_and_val(self.dir, self.acc)
 
@@ -128,7 +142,6 @@ class Individual:
             self.speed.setmag(self.spd_limit)
         
         # actually move
-        
         self.pos += self.speed
         
         # Collision with the walls
@@ -154,9 +167,10 @@ class Individual:
 
     def turn_left(self):
         self.dir = self.dir.rotatedby(-config.ANGLE_INCREASE)
-
+        
     def turn_right(self):
         self.dir = self.dir.rotatedby(config.ANGLE_INCREASE)
+        
     
     def hits(self, other):
         return (self.pos - other.pos).mag < self.radius + other.radius
@@ -170,37 +184,22 @@ class Individual:
     def update_neurons(self, opposites):
         
 
-        for i in range(len(self.neuron_angles)):
-            self.distances[i] = 0
         for i in range(3):
             self.wall_distances[i] = 0
 
-        for opposite in opposites:
-            if opposite.pos.dist(self.pos) > self.neuron_range:
-                continue
-            distance_vector = opposite.pos - self.pos
-
-            for i in range(len(self.neuron_angles)):
-                neuron_perp_vector = self.dir.rotatedby(self.neuron_angles[i]).rot90anti()
-
-                dist_to_line = distance_vector * neuron_perp_vector
-                if abs(dist_to_line) <= opposite.radius:
-                    # We know the line passing through the center of self and the current
-                    # neuron vector passes through the opposite individual. But we want the
-                    # intersection to the segment, not the line
-                    # so I need to check the semiplane in which the opposite center is
-                    # so for this I use the cross product
-
-                    if neuron_perp_vector ^ distance_vector < 0:
-                        # We want: distance = radius sum --> 1
-                        #          distance = maxdist --> 0
-                        # (distance-radius sum) / (maxdist - radius_sum) gives the opposite so
-                        self.distances[i] = max(self.distances[i], 
-                        1-(distance_vector.mag-(self.radius+opposite.radius))/(self.max_dist_to_opposite - (self.radius+opposite.radius)))
-
-        for i in range(len(self.neuron_angles)):
-            self.distances[i] = config.NEURON_MULTIPLIER(self.distances[i])
         
+        curr_opposite = None
+        for opposite in opposites:
+            if abs((opposite.pos-self.pos).normalized() ^ self.dir) <= sin(config.PREDATOR_ANGLE_VISION * pi/2) and (opposite.pos-self.pos).normalized() * self.dir > 0:
+                if curr_opposite == None or curr_opposite.pos.dist(self.pos) > opposite.pos.dist(self.pos):
+                    curr_opposite = opposite
+     
+        if curr_opposite is None:
+            self.vision_variables = [0, 0, 0]
+        else:
+            
+            self.vision_variables = [1, config.NEURON_MULTIPLIER(1-curr_opposite.pos.dist(self.pos)/config.PREDATOR_NEURON_RANGE),
+                                     asin(self.dir ^ (curr_opposite.pos-self.pos).normalized())/pi]
         
         # for the distance to the walls
         # 1 = right next to them

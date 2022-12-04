@@ -211,7 +211,7 @@ Mass: {self.preds[0].mass}"""
     
     @staticmethod
     def update_acceleration(pred, model):
-        arr = np.array(pred.distances + pred.wall_distances +\
+        arr = np.array(pred.vision_variables + pred.wall_distances +\
             [pred.speed.mag / config.PREDATOR_SPEED_LIMIT, atan2(pred.speed * pred.dir.rot90anti(), pred.speed * pred.dir) / pi,
             pred.acc/config.PREDATOR_ACCELERATION_LIMIT, pred.energy / config.PREDATOR_ENERGY_LIMIT,
             pred.digestion / config.PREDATOR_MAX_DIGESTION_CAPACITY])

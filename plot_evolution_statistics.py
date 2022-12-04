@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 TL = get_theoretical_limit()
 
-logfile_name = 'log2022-12-02 143905.036739.pkl'
+logfile_name = 'log2022-12-04 064805.994306.pkl'
 
 with open(logfile_name, 'rb') as logfile:
     logs = pkl.load(logfile)
@@ -34,7 +34,7 @@ ax.plot(xs_gens, ys_mins, color='tab:blue', label='Menor fitness')
 #ax.plot(xs_gens, ys_std_ups, color='black')
 #ax.plot(xs_gens, ys_std_downs, color='black')
 
-ax.set_xlim([0, 50])
+ax.set_xlim([0, 300])
 ax.set_ylim([0, 70])
 
 ax.set_title('Fitness ao longo das gerações')
@@ -43,7 +43,7 @@ ax.set_ylabel('Porcentagem do máximo teórico')
 
 
 plt.legend()
-plt.savefig('sixthlog_mutgauss1.png')
+plt.savefig('revolution.png')
 
 plt.show()
 
