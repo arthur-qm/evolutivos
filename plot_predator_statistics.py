@@ -13,7 +13,7 @@ import pygame
 
 TL = get_theoretical_limit()
 
-input_hof = 'hof2022-12-02 002058.683055.pkl'
+input_hof = 'hof2022-12-06 002437.991235.pkl'
 
 
 # Fixa a seed
@@ -24,7 +24,7 @@ N_PREYS = 7
 
 SITUATIONS = 30
 
-position_considered = 0
+position_considered = 4
 
 pred_poses = [geometry.Point(utils.randint(config.LOWX, config.HIGHX), 
                             utils.randint(config.LOWY, config.HIGHY)) for _ in range(SITUATIONS)]
@@ -85,7 +85,7 @@ fig = plt.figure()
 ax = fig.add_subplot(1, 1, 1)
 ax.set_xlabel('Tempo (núm. de iterações)')
 
-mode = 1
+mode = 2
 figname = ''
 
 

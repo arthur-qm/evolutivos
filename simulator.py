@@ -132,6 +132,13 @@ class PredatorEvolverSimulation(Game):
             return
 
         self.time_taken += 1
+        
+            
+
+        for i in range(len(self.preds)):
+            self.preds[i].update_neurons(self.preys)
+            
+        
         if self.broadcast:
             for i in range(len(self.preys)):
                 self.preys[i].draw(self.screen)
@@ -156,12 +163,11 @@ Mass: {self.preds[0].mass}"""
                 if ev.type == QUIT:
                     self.force_end = True
                     return
-            
+        
 
         for i in range(len(self.preds)):
-            self.preds[i].update_neurons(self.preys)
             PredatorEvolverSimulation.update_acceleration(self.preds[i], self.model)
-        
+
         if self.playable:
             for i in range(len(self.preys)):
                 Game.make_it_move(self.preys[i])

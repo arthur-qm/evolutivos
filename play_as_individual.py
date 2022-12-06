@@ -105,6 +105,7 @@ if sys.argv[1] == 'test':
         
         for pred in preds_array:
             pred.erase(screen)
+            print('a')
             if movable:
                 pred.update_neurons(preys_array if controlled else preys_array + [demo])
                 pred.move()

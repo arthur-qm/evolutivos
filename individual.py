@@ -90,16 +90,18 @@ class Individual:
         if config.DRAW_NEURONS and self.vision_variables[0] != -1:
             if self.vision_variables[0] == 1:
                 pygame.draw.line(screen, self.color, self.pos.L(),
-                                 (self.pos + self.dir.rotatedby(self.vision_variables[2]) * config.PREDATOR_NEURON_RANGE).L(),
+                                 (self.pos + self.dir.rotatedby(self.vision_variables[2]*(config.PREDATOR_ANGLE_VISION*pi/2)/pi) * config.PREDATOR_NEURON_RANGE).L(),
                                  width=config.NEURON_WIDTH)
         
-            pygame.draw.line(screen, self.color, (self.pos + self.dir * self.radius).L(),
-                            (self.pos + self.dir.rotatedby(config.PREDATOR_ANGLE_VISION * 1/2) * config.PREDATOR_NEURON_RANGE).L(),
+            pygame.draw.line(screen, self.color, (self.pos ).L(),
+                            (self.pos + self.dir.rotatedby(config.PREDATOR_ANGLE_VISION/2) * config.PREDATOR_NEURON_RANGE).L(),
                             width=config.NEURON_WIDTH)
             
-            pygame.draw.line(screen, self.color, (self.pos + self.dir * self.radius).L(),
-                            (self.pos + self.dir.rotatedby(-config.PREDATOR_ANGLE_VISION * 1/2) * config.PREDATOR_NEURON_RANGE).L(),
+            pygame.draw.line(screen, self.color, (self.pos).L(),
+                            (self.pos + self.dir.rotatedby(-config.PREDATOR_ANGLE_VISION/2) * config.PREDATOR_NEURON_RANGE).L(),
                             width=config.NEURON_WIDTH)
+            
+            # print(f'draw {(self.pos + self.dir.rotatedby(-config.PREDATOR_ANGLE_VISION * 1/2) * config.PREDATOR_NEURON_RANGE)}')
 
     # Only erases circle
     def erase(self, screen, erasing_color=config.BG_COLOR):
@@ -112,17 +114,17 @@ class Individual:
         if config.DRAW_NEURONS and self.vision_variables[0] != -1:
             if self.vision_variables[0] == 1:
                 pygame.draw.line(screen, erasing_color, (self.pos).L(),
-                                 (self.pos + self.dir.rotatedby(self.vision_variables[2]) * config.PREDATOR_NEURON_RANGE).L(),
+                                 (self.pos + self.dir.rotatedby(self.vision_variables[2]*(config.PREDATOR_ANGLE_VISION*pi/2)/pi) * config.PREDATOR_NEURON_RANGE).L(),
                                  width=config.NEURON_WIDTH)
                 
-        
-            pygame.draw.line(screen, erasing_color, (self.pos + self.dir * self.radius).L(),
-                            (self.pos + self.dir.rotatedby(config.PREDATOR_ANGLE_VISION * pi/2) * config.PREDATOR_NEURON_RANGE).L(),
+            pygame.draw.line(screen, erasing_color, (self.pos ).L(),
+                            (self.pos + self.dir.rotatedby(config.PREDATOR_ANGLE_VISION/2) * config.PREDATOR_NEURON_RANGE).L(),
                             width=config.NEURON_WIDTH)
             
-            pygame.draw.line(screen, erasing_color, (self.pos + self.dir * self.radius).L(),
-                            (self.pos + self.dir.rotatedby(-config.PREDATOR_ANGLE_VISION*pi/2) * config.PREDATOR_NEURON_RANGE).L(),
+            pygame.draw.line(screen, erasing_color, (self.pos ).L(),
+                            (self.pos + self.dir.rotatedby(-config.PREDATOR_ANGLE_VISION/2) * config.PREDATOR_NEURON_RANGE).L(),
                             width=config.NEURON_WIDTH)
+            # print(f'erase {(self.pos + self.dir.rotatedby(-config.PREDATOR_ANGLE_VISION * 1/2) * config.PREDATOR_NEURON_RANGE)}')
         
     def upd_ac_vector(self):
         self.accvec = Vector.from_direction_and_val(self.dir, self.acc)
@@ -199,7 +201,8 @@ class Individual:
         else:
             
             self.vision_variables = [1, config.NEURON_MULTIPLIER(1-curr_opposite.pos.dist(self.pos)/config.PREDATOR_NEURON_RANGE),
-                                     asin(self.dir ^ (curr_opposite.pos-self.pos).normalized())/pi]
+                                     asin(self.dir ^ (curr_opposite.pos-self.pos).normalized())/(config.PREDATOR_ANGLE_VISION*pi/2)]
+            # print(self.vision_variables)
         
         # for the distance to the walls
         # 1 = right next to them
