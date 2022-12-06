@@ -39,7 +39,7 @@ DRAW_DIRECTION=True
 # Acceleration decrease/increase // change in turning angle
 ACCELERATION_INCREASE = ACCELERATION_LIMIT * 0.2
 ACCELERATION_DECREASE = ACCELERATION_INCREASE
-ANGLE_INCREASE = 0.03 # --> abrupt x pi change in acceleration angle
+ANGLE_INCREASE = 0.012 # --> abrupt x pi change in acceleration angle
 
 
 # Prey Configuration
@@ -118,6 +118,6 @@ PREY_LAYERS_LIST = [2*PREY_NEURONS+6, 5, 2]
 PREY_CAN_CROSS_WALLS = False
 
 # PREDATOR TRAINING
-PREDATOR_LAYERS_LIST = [3+3+5, 2]
+PREDATOR_LAYERS_LIST = [3+3+5, 3, 2]
 PREDATOR_ACC_LAYER_LIST = []
 PRED_CAN_CROSS_WALLS = False
